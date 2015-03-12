@@ -10,6 +10,11 @@
 #include "mruby/data.h"
 #include "mrb_getprocpath.h"
 
+#ifdef __APPLE__
+#include <unistd.h>
+#include <libproc.h>
+#endif
+
 #define DONE mrb_gc_arena_restore(mrb, 0);
 
 typedef struct {
@@ -43,11 +48,24 @@ static mrb_value mrb_getprocpath_init(mrb_state *mrb, mrb_value self)
   return self;
 }
 
-static mrb_value mrb_getprocpath_hello(mrb_state *mrb, mrb_value self)
-{
-  mrb_getprocpath_data *data = DATA_PTR(self);
 
-  return mrb_str_new(mrb, data->str, data->len);
+static  mrb_value mrb_getprocpath_get(mrb_state *mrb, mrb_value self)
+{
+#ifdef __APPLE__
+	pid_t pid;
+	char path[PROC_PIDPATHINFO_MAXSIZE];
+
+	pid = getpid();
+	proc_pidpath(pid, path, sizeof(path));
+	//TODO error handling
+#endif
+#ifdef __linux
+	char path[2048];
+	readlink("/proc/self/exe", path, sizeof(path));
+        //TODO error handling
+#endif
+
+  return mrb_str_new_cstr(mrb, path);
 }
 
 static mrb_value mrb_getprocpath_hi(mrb_state *mrb, mrb_value self)
@@ -60,8 +78,7 @@ void mrb_mruby_getprocpath_gem_init(mrb_state *mrb)
     struct RClass *getprocpath;
     getprocpath = mrb_define_class(mrb, "Getprocpath", mrb->object_class);
     mrb_define_method(mrb, getprocpath, "initialize", mrb_getprocpath_init, MRB_ARGS_REQ(1));
-    mrb_define_method(mrb, getprocpath, "hello", mrb_getprocpath_hello, MRB_ARGS_NONE());
-    mrb_define_class_method(mrb, getprocpath, "hi", mrb_getprocpath_hi, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, getprocpath, "get", mrb_getprocpath_get, MRB_ARGS_NONE());
     DONE;
 }
 
