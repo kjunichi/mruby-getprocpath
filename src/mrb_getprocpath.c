@@ -10,8 +10,8 @@
 #include "mruby/data.h"
 #include "mrb_getprocpath.h"
 
-#ifdef __APPLE__
 #include <unistd.h>
+#ifdef __APPLE__
 #include <libproc.h>
 #endif
 
@@ -61,7 +61,9 @@ static  mrb_value mrb_getprocpath_get(mrb_state *mrb, mrb_value self)
 #endif
 #ifdef __linux
 	char path[2048];
-	readlink("/proc/self/exe", path, sizeof(path));
+        ssize_t len;
+	len = readlink("/proc/self/exe", path, sizeof(path));
+        path[len]='\0';
         //TODO error handling
 #endif
 
