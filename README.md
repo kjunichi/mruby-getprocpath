@@ -13,13 +13,9 @@ end
 ```
 ## example
 ```ruby
-p Getprocpath.hi
-#=> "hi!!"
-t = Getprocpath.new "hello"
-p t.hello
-#=> "hello"
-p t.bye
-#=> "hello bye"
+p Getprocpath.get
+#=> "/Users/foo/Downloads/mruby/bin/mirb"
+
 ```
 
 ## License
